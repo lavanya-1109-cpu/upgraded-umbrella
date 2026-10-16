@@ -1,0 +1,4 @@
+# PhishGuard blacklist: add one domain or full URL per line. Lines starting with # are ignored.
+# Anything listed here is marked as phishing. These two lines are demo examples:
+totally-fake-bank-login.example
+http://demo-phish-page.example/secure/verify

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | AI-Powered Phishing Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="glow"></div>
+<main class="container">
+    <header class="brand">
+        <i class="fa-solid fa-shield-halved"></i>
+        <h1>PhishGuard<span>.ai</span></h1>
+        <p data-i18n="subtitle">Advanced Machine Learning URL Threat Analyzer</p>
+        <div class="themes" id="themes">
+            <button type="button" class="dot" data-theme="sunset" title="Sunset" aria-label="Sunset theme"></button>
+            <button type="button" class="dot" data-theme="matrix" title="Matrix" aria-label="Matrix theme"></button>
+            <button type="button" class="dot" data-theme="neon" title="Neon" aria-label="Neon theme"></button>
+            <button type="button" class="dot" data-theme="ocean" title="Ocean" aria-label="Ocean theme"></button>
+            <button type="button" class="mode" id="modeBtn" aria-label="Light or dark mode"><i id="modeIcon" class="fa-solid fa-sun"></i></button>
+            <button type="button" class="mode lang" id="langBtn" aria-label="English / हिन्दी">हिं</button>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button type="button" class="tab active" data-tab="url"><i class="fa-solid fa-link"></i> <span data-i18n="tab_url">Scan URL</span></button>
+        <button type="button" class="tab" data-tab="email"><i class="fa-solid fa-envelope"></i> <span data-i18n="tab_email">Scan Email</span></button>
+        <button type="button" class="tab" data-tab="msg"><i class="fa-solid fa-comment-sms"></i> <span data-i18n="tab_msg">SMS / WhatsApp</span></button>
+        <button type="button" class="tab" data-tab="qr"><i class="fa-solid fa-qrcode"></i> <span data-i18n="tab_qr">Scan QR</span></button>
+    </nav>
+
+    <section class="card" id="panel-url">
+        <form id="phishForm">
+            <label class="label" for="urlInput" data-i18n="url_label">Enter URL to Analyze</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-link"></i>
+                <input type="text" id="urlInput" placeholder="https://example.com/login" autocomplete="off">
+            </div>
+            <div class="options">
+                <label><input type="checkbox" id="deepScan"> <span data-i18n="opt_deep">Deep scan: domain age + SSL certificate</span></label>
+                <label><input type="checkbox" id="pageScan"> <span data-i18n="opt_page">Page check: look inside the page's HTML</span></label>
+            </div>
+            <button type="submit" id="scanBtn" class="primary"><span data-i18n="scan_btn">Scan URL</span> <i class="fa-solid fa-arrow-right"></i></button>
+        </form>
+        <div class="samples">
+            <button type="button" class="ghost" data-url="https://www.wikipedia.org" data-i18n="sample_safe">Try a safe URL</button>
+            <button type="button" class="ghost" data-url="http://paypa1-secure-login.verify-account.xyz/signin" data-i18n="sample_phish">Try a phishing-style URL</button>
+        </div>
+    </section>
+
+    <section class="card hidden" id="panel-email">
+        <label class="label" for="emailText" data-i18n="email_label">Paste the email text (with its links)</label>
+        <textarea id="emailText" rows="7" data-i18n-ph="email_ph" placeholder="Dear customer, your account will be suspended..."></textarea>
+        <button type="button" id="emailBtn" class="primary"><span data-i18n="email_btn">Scan Email</span> <i class="fa-solid fa-arrow-right"></i></button>
+        <div class="samples"><button type="button" class="ghost" id="emailSample" data-i18n="email_sample">Try a sample phishing email</button></div>
+        <p class="msg" id="emailMsg"></p>
+    </section>
+
+    <section class="card hidden" id="panel-msg">
+        <label class="label" for="msgText" data-i18n="msg_label">Paste the SMS or WhatsApp message</label>
+        <textarea id="msgText" rows="6" data-i18n-ph="msg_ph" placeholder="Dear customer, your account will be blocked today. Update KYC now: http://..."></textarea>
+        <button type="button" id="msgBtn" class="primary"><span data-i18n="msg_btn">Scan Message</span> <i class="fa-solid fa-arrow-right"></i></button>
+        <div class="samples">
+            <button type="button" class="ghost" data-msg="kyc" data-i18n="msg_s_kyc">Sample: KYC scam</button>
+            <button type="button" class="ghost" data-msg="parcel" data-i18n="msg_s_parcel">Sample: parcel scam</button>
+            <button type="button" class="ghost" data-msg="ok" data-i18n="msg_s_ok">Sample: genuine OTP</button>
+        </div>
+        <p class="msg" id="msgMsg"></p>
+    </section>
+
+    <section class="card hidden" id="panel-qr">
+        <label class="label" data-i18n="qr_label">Upload a picture of a QR code</label>
+        <label class="drop" id="qrDrop">
+            <i class="fa-solid fa-qrcode"></i>
+            <span data-i18n="qr_drop">Click to choose an image, or drop it here</span>
+            <input type="file" id="qrFile" accept="image/*" hidden>
+        </label>
+        <canvas id="qrCanvas" class="hidden"></canvas>
+        <p class="msg" id="qrMsg" data-i18n="qr_hint">The link inside the QR code is read in your browser, then scanned like any other URL.</p>
+    </section>
+
+    <div id="loader" class="loader hidden"><div class="spinner"></div><span data-i18n="loading">Analyzing, please wait...</span></div>
+
+    <div id="resultContainer" class="hidden">
+        <div id="resultCard" class="result-box">
+            <div class="result-head">
+                <div class="result-icon"><i id="resultFaIcon" class="fa-solid"></i></div>
+                <div>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultDesc"></p>
+                    <p id="resultUrl" class="url-line"></p>
+                </div>
+            </div>
+            <div class="risk">
+                <div class="risk-top"><span data-i18n="risk_score">Risk score</span><strong id="confText">0 / 100</strong></div>
+                <div class="bar"><div id="progressFill"></div></div>
+                <div class="risk-scale"><span data-i18n="scale_safe">Safe</span><span data-i18n="scale_susp">Suspicious</span><span data-i18n="scale_phish">Phishing</span></div>
+            </div>
+            <div id="breakdownSection" class="badges"></div>
+            <div id="extra"></div>
+        </div>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

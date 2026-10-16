@@ -21,10 +21,12 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-# Set up paths
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR.parent / "models" / "phishing_model.pkl"
+
+MODEL_PATH = BASE_DIR / "models" / "phishing_model.pkl"
+
 DB_PATH = BASE_DIR / "scans.db"
+
 
 # Add backend directory to system path so feature_extraction can be imported
 sys.path.insert(0, str(BASE_DIR))
